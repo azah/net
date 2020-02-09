@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -263,6 +264,12 @@ func (h *Handler) handlePut(w http.ResponseWriter, r *http.Request) (status int,
 	// TODO(rost): Support the If-Match, If-None-Match headers? See bradfitz'
 	// comments in http.checkEtag.
 	ctx := r.Context()
+
+	reqPath = filepath.Join(".", reqPath)
+	mkdirErr := os.MkdirAll(filepath.Dir(reqPath), os.ModePerm)
+	if err != nil {
+		return http.StatusMethodNotAllowed, mkdirErr
+	}
 
 	f, err := h.FileSystem.OpenFile(ctx, reqPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
